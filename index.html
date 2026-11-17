@@ -279,7 +279,8 @@ const weekWords = () => WORDS.filter(WEEKS[store.week].test);
 const weekLabel = () => WEEKS[store.week].label;
 
 /* ---------- speech ---------- */
-const canSpeak = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+const nativeTTS = typeof window.AndroidTTS !== "undefined" && window.AndroidTTS; // Androidアプリ版の読み上げ
+const canSpeak = !!nativeTTS || ("speechSynthesis" in window && "SpeechSynthesisUtterance" in window);
 let voice = null;
 function pickVoice() {
   if (!canSpeak) return;
@@ -287,10 +288,11 @@ function pickVoice() {
   const pref = ["Samantha", "Google US English", "Microsoft Aria", "Microsoft Jenny", "Alex"];
   voice = vs.find(v => pref.some(p => v.name.includes(p))) || vs.find(v => /en[-_]US/i.test(v.lang)) || vs[0] || null;
 }
-if (canSpeak) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+if (canSpeak && !nativeTTS) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 function speakText(text, rate = 0.9) {
   if (!canSpeak) return;
   const t = text.replace(/～/g, "").replace(/\s+/g, " ").trim();
+  if (nativeTTS) { try { nativeTTS.speak(t, rate); } catch (e) {} return; }
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(t);
   u.lang = voice ? voice.lang : "en-US";
@@ -494,7 +496,7 @@ function list() {
 home();
 </script>
 <script>
-if ("serviceWorker" in navigator && location.protocol === "https:") {
+if ("serviceWorker" in navigator && location.protocol === "https:" && location.hostname !== "appassets.androidplatform.net") {
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").then(reg => reg.update()).catch(() => {}));
   let reloaded = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => { if (navigator.serviceWorker.controller && !reloaded) { reloaded = true; location.reload(); } });
