@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#c43a52">
+<title>たんごクイズ WEEK 21-22</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
+<style>
+/* Layout: one narrow column like a single word-book card; pink = English column, blue = Japanese column, same as the book */
+:root {
+  --bg: #fbf7f8;
+  --paper: #ffffff;
+  --ink: #2c2a3a;
+  --muted: #6f6a80;
+  --pink: #fbe3e6;
+  --pink-ink: #c43a52;
+  --blue: #e3e8f7;
+  --blue-ink: #3a4fa0;
+  --line: #d9d3e3;
+  --star: #e2364d;
+  --good: #1f9a5a;
+  --good-bg: #dff4e8;
+  --bad: #d33a3a;
+  --bad-bg: #fde4e4;
+  --shadow: 0 2px 0 #d9d3e3;
+  --font-en: "Andika", "Segoe UI", system-ui, sans-serif;
+  --font-ja: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1c1a24; --paper: #262331; --ink: #f0edf6; --muted: #a9a3ba;
+    --pink: #3d2530; --pink-ink: #ff8ea1; --blue: #252c45; --blue-ink: #9fb2ff;
+    --line: #3b3749; --star: #ff6b7e; --good: #5fd497; --good-bg: #1d3a2b;
+    --bad: #ff7b7b; --bad-bg: #432325; --shadow: 0 2px 0 #13111a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1c1a24; --paper: #262331; --ink: #f0edf6; --muted: #a9a3ba;
+  --pink: #3d2530; --pink-ink: #ff8ea1; --blue: #252c45; --blue-ink: #9fb2ff;
+  --line: #3b3749; --star: #ff6b7e; --good: #5fd497; --good-bg: #1d3a2b;
+  --bad: #ff7b7b; --bad-bg: #432325; --shadow: 0 2px 0 #13111a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-ja); font-size: 17px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 32px;
+  -webkit-tap-highlight-color: transparent;
+}
+.app { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, select:focus-visible { outline: 3px solid var(--blue-ink); outline-offset: 2px; }
+rt { font-size: .5em; color: var(--muted); }
+.en { font-family: var(--font-en); }
+
+/* header */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.unit { background: var(--blue-ink); color: var(--paper); font-weight: 900; padding: 4px 12px; border-radius: 8px; font-size: 14px; letter-spacing: .04em; }
+.top h1 { font-size: 22px; margin: 0; font-weight: 900; text-wrap: balance; }
+.icon-btn { background: var(--paper); border: 2px solid var(--line); border-radius: 12px; padding: 6px 12px; font-size: 14px; font-weight: 700; }
+
+/* panels */
+.panel { background: var(--paper); border: 2px solid var(--line); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.label { font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: .05em; }
+.seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
+.seg.five { grid-template-columns: repeat(6, 1fr); }
+.seg.five button { grid-column: span 2; }
+.seg.five button:nth-child(4) { grid-column: 2 / span 2; }
+.seg button {
+  background: var(--bg); border: 2px solid var(--line); border-radius: 12px;
+  padding: 10px 6px; font-weight: 700; font-size: 16px; line-height: 1.3;
+}
+.seg button small { display: block; font-weight: 500; font-size: 12px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--blue); border-color: var(--blue-ink); color: var(--blue-ink); }
+.seg button[aria-pressed="true"] small { color: var(--blue-ink); }
+.toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-weight: 700; }
+.switch { width: 52px; height: 30px; border-radius: 99px; border: 2px solid var(--line); background: var(--bg); position: relative; flex: none; padding: 0; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--muted); transition: transform .15s; }
+.switch[aria-checked="true"] { background: var(--blue); border-color: var(--blue-ink); }
+.switch[aria-checked="true"]::after { transform: translateX(22px); background: var(--blue-ink); }
+
+.big-btn {
+  border: none; border-radius: 16px; padding: 16px; font-size: 20px; font-weight: 900;
+  background: var(--pink-ink); color: var(--paper); box-shadow: 0 4px 0 color-mix(in srgb, var(--pink-ink) 60%, #000);
+}
+.big-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 color-mix(in srgb, var(--pink-ink) 60%, #000); }
+.sub-btn { border: 2px solid var(--line); background: var(--paper); border-radius: 16px; padding: 12px; font-size: 16px; font-weight: 700; }
+
+/* progress summary */
+.summary { display: flex; align-items: center; gap: 14px; }
+.ring { width: 64px; height: 64px; flex: none; }
+.summary strong { font-size: 26px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.summary p { margin: 0; color: var(--muted); font-size: 13px; }
+
+/* quiz */
+.qbar { display: flex; align-items: center; gap: 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.track { flex: 1; height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.track i { display: block; height: 100%; background: var(--pink-ink); border-radius: 99px; transition: width .25s; }
+.card {
+  background: var(--pink); border-radius: 22px; padding: 20px 16px 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
+  border: 2px solid color-mix(in srgb, var(--pink-ink) 25%, transparent);
+}
+.num { font-size: 15px; font-weight: 700; color: var(--muted); display: flex; gap: 6px; align-items: center; font-variant-numeric: tabular-nums; }
+.num .star { color: var(--star); }
+.boxes { display: inline-flex; gap: 3px; }
+.boxes b { width: 12px; height: 12px; border: 1.5px solid var(--muted); border-radius: 2px; display: inline-block; }
+.boxes b.on { background: var(--good); border-color: var(--good); }
+.word { font-family: var(--font-en); font-size: clamp(30px, 9.5vw, 46px); font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+.word.hidden-word { color: transparent; text-shadow: 0 0 14px color-mix(in srgb, var(--ink) 50%, transparent); user-select: none; }
+.speak-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.speak {
+  display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: 99px;
+  background: var(--paper); color: var(--pink-ink); font-weight: 700; padding: 10px 18px; font-size: 16px;
+  box-shadow: var(--shadow);
+}
+.speak svg { width: 22px; height: 22px; }
+.speak.slow { color: var(--blue-ink); font-size: 14px; padding: 8px 14px; }
+.prompt { font-weight: 700; color: var(--muted); font-size: 16px; text-align: center; }
+
+.choices { display: grid; gap: 10px; }
+.choice {
+  display: flex; align-items: center; gap: 12px; text-align: left;
+  background: var(--blue); border: 2px solid transparent; border-radius: 16px; padding: 14px 16px; font-size: 21px; font-weight: 700; min-height: 64px;
+}
+.choice .k { width: 28px; height: 28px; flex: none; border-radius: 50%; background: var(--paper); color: var(--blue-ink); display: grid; place-items: center; font-size: 14px; font-weight: 900; }
+.choice .pos { font-size: 11px; padding: 1px 6px; border-radius: 4px; color: var(--paper); flex: none; }
+.choice.correct { background: var(--good-bg); border-color: var(--good); }
+.choice.correct .k { background: var(--good); color: var(--paper); }
+.choice.wrong { background: var(--bad-bg); border-color: var(--bad); }
+.choice.wrong .k { background: var(--bad); color: var(--paper); }
+.choice:disabled { cursor: default; }
+.choices.done .choice:not(.correct):not(.wrong) { opacity: .45; }
+
+.pos-n { background: #d9466a; } .pos-v { background: #2f53b0; } .pos-a { background: #2f8f4e; } .pos-d { background: #d2691e; } .pos-p { background: #7b5bb5; }
+
+/* answer sheet: slides up from the bottom so nothing has to be scrolled on a phone */
+.backdrop { position: fixed; inset: 0; background: color-mix(in srgb, var(--ink) 35%, transparent); z-index: 20; }
+.feedback {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 21;
+  border-radius: 22px 22px 0 0; border: 2px solid var(--line); border-bottom: none;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: 14px; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  max-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px)); overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px; background: var(--paper);
+  box-shadow: 0 -8px 30px color-mix(in srgb, var(--ink) 20%, transparent);
+}
+.feedback > * { max-width: 520px; width: 100%; margin-inline: auto; }
+@keyframes rise { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.feedback.pop { animation: rise .25s ease-out; }
+.verdict { font-size: 22px; font-weight: 900; display: flex; align-items: center; gap: 8px; }
+.verdict.ok { color: var(--good); } .verdict.ng { color: var(--bad); }
+.answer-line { font-weight: 700; }
+.answer-line { font-size: 19px; }
+.answer-line .en { font-size: 23px; }
+.past { font-size: 13px; color: var(--muted); }
+.past .en { font-size: 15px; color: var(--ink); }
+.ex { background: var(--bg); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+.ex .en { font-size: 19px; line-height: 1.45; }
+.ex mark { background: none; color: var(--pink-ink); font-weight: 700; }
+.ex .ja { font-size: 15px; color: var(--muted); }
+.ex-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+/* list */
+.list { display: flex; flex-direction: column; border: 2px solid var(--line); border-radius: 18px; overflow: hidden; background: var(--paper); }
+.row { display: grid; grid-template-columns: 1fr 1fr auto; align-items: center; gap: 0; border-top: 1px solid var(--line); }
+.row:first-child { border-top: none; }
+.row > div { padding: 10px 12px; min-width: 0; }
+.row .c1 { background: var(--pink); }
+.row .c2 { background: var(--blue); align-self: stretch; display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 16px; }
+.row .c1 .w { font-family: var(--font-en); font-size: 21px; font-weight: 700; overflow-wrap: anywhere; line-height: 1.2; }
+.row .c3 { padding: 6px 8px; }
+.mini { border: none; background: var(--bg); color: var(--pink-ink); border-radius: 50%; width: 42px; height: 42px; display: grid; place-items: center; }
+.mini svg { width: 20px; height: 20px; }
+
+/* result */
+.score { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.score .big { font-size: 64px; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+.score .big span { font-size: 28px; color: var(--muted); }
+.score .msg { font-size: 20px; font-weight: 900; color: var(--pink-ink); }
+.btns { display: flex; flex-direction: column; gap: 10px; }
+.note { font-size: 12px; color: var(--muted); text-align: center; margin: 0; }
+.warn { background: var(--bad-bg); color: var(--bad); border-radius: 12px; padding: 10px 12px; font-size: 13px; font-weight: 700; }
+
+@keyframes pop { 0% { transform: scale(.96); } 60% { transform: scale(1.03); } 100% { transform: scale(1); } }
+.pop { animation: pop .25s ease-out; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="app" id="app"></div>
+
+<script>
+const WORDS = [
+  {n:388,s:1,w:"life",p:"n",m:"<ruby>生命<rt>せいめい</rt></ruby>、<ruby>命<rt>いのち</rt></ruby>",pl:"lives",ex:"The doctor saved many lives.",hl:"lives",ja:"その医者はたくさんの命を救いました。"},
+  {n:389,s:1,w:"death",p:"n",m:"<ruby>死<rt>し</rt></ruby>",ex:"The novelist became famous after his death.",hl:"death",ja:"その小説家は死後、有名になりました。"},
+  {n:390,s:1,w:"safety",p:"n",m:"<ruby>安全<rt>あんぜん</rt></ruby>",ex:"Please put on a seat belt for your safety.",hl:"safety",ja:"安全のためにシートベルトをしてください。"},
+  {n:391,s:1,w:"pain",p:"n",m:"<ruby>痛<rt>いた</rt></ruby>み",ex:"I have a pain in my lower back.",hl:"pain",ja:"わたしは腰に痛みがあります。"},
+  {n:392,s:1,w:"condition",p:"n",m:"<ruby>状態<rt>じょうたい</rt></ruby>、<ruby>体調<rt>たいちょう</rt></ruby>",ex:"My grandmother is in better condition today.",hl:"condition",ja:"わたしの祖母は、今日は体調がよいです。"},
+  {n:393,s:0,w:"oxygen",p:"n",m:"<ruby>酸素<rt>さんそ</rt></ruby>",ex:"Fire needs oxygen to burn.",hl:"oxygen",ja:"火は燃えるために酸素が必要です。"},
+  {n:394,s:0,w:"species",p:"n",m:"<ruby>種<rt>しゅ</rt></ruby>",ex:"A new species of fish was discovered in this lake.",hl:"species",ja:"この湖で、新種の魚が見つかりました。"},
+  {n:395,s:0,w:"dinosaur",p:"n",m:"<ruby>恐竜<rt>きょうりゅう</rt></ruby>",ex:"The program about dinosaurs was interesting.",hl:"dinosaurs",ja:"恐竜に関するその番組はおもしろかったです。"},
+  {n:396,s:1,w:"fail",p:"v",m:"（<ruby>試験<rt>しけん</rt></ruby>）に<ruby>落<rt>お</rt></ruby>ちる",ex:"Dan failed the French exam.",hl:"failed",ja:"ダンはフランス語の試験に落ちました。"},
+  {n:397,s:1,w:"wish",p:"v",m:"（～を）<ruby>望<rt>のぞ</rt></ruby>む",ex:"We all wish for world peace.",hl:"wish",ja:"わたしたちはみんな、世界平和を望んでいます。"},
+  {n:398,s:1,w:"wrap",p:"v",m:"～を<ruby>包<rt>つつ</rt></ruby>む",past:"wrapped",ex:"I wrapped the present with colorful paper.",hl:"wrapped",ja:"わたしはプレゼントを色あざやかな紙で包みました。"},
+  {n:399,s:0,w:"oversleep",p:"v",m:"<ruby>寝過<rt>ねす</rt></ruby>ごす",past:"overslept",ex:"You were late today. Did you oversleep?",hl:"oversleep",ja:"今日はちこくしましたね。寝過ごしたのですか。"},
+  {n:400,s:1,w:"enough",p:"a",m:"<ruby>十分<rt>じゅうぶん</rt></ruby>な",ex:"We have enough eggs for three omelets.",hl:"enough",ja:"オムレツを3つ作るのに十分な卵があります。"},
+  {n:401,s:0,w:"various",p:"a",m:"さまざまな",ex:"You can see various types of birds on the island.",hl:"various",ja:"その島では、さまざまな種類の鳥を見ることができます。"},
+  {n:402,s:1,w:"each",p:"a",m:"それぞれの",ex:"Each country has its own history.",hl:"Each",ja:"それぞれの国には独自の歴史があります。"},
+  {n:403,s:1,w:"leave ～ at home",p:"p",m:"～を<ruby>家<rt>いえ</rt></ruby>に<ruby>置<rt>お</rt></ruby>き<ruby>忘<rt>わす</rt></ruby>れる",past:"left",ex:"Tom left his math textbook at home.",hl:"left",ja:"トムは算数の教科書を家に忘れてきました。"},
+  {n:404,s:1,w:"keep one's promise",p:"p",m:"<ruby>約束<rt>やくそく</rt></ruby>を<ruby>守<rt>まも</rt></ruby>る",past:"kept",ex:"Elena always keeps her promises.",hl:"keeps her promises",ja:"エレナはいつも約束を守ります。"},
+  {n:405,s:0,w:"make (a) noise",p:"p",m:"<ruby>音<rt>おと</rt></ruby>を<ruby>立<rt>た</rt></ruby>てる、さわぐ",past:"made",ex:"Don't make a noise in the hallway.",hl:"make a noise",ja:"ろうかではさわがないでください。"},
+  {n:406,s:1,w:"along with ～",p:"p",m:"～といっしょに",ex:"I sent him a letter along with some photos.",hl:"along with",ja:"ぼくはかれに写真といっしょに手紙を送りました。"},
+  {n:407,s:0,w:"every other day",p:"p",m:"1<ruby>日<rt>にち</rt></ruby>おきに",ex:"Lydia waters the plants every other day.",hl:"every other day",ja:"リディアは1日おきに植物に水をやります。"},
+  {n:408,s:1,w:"tradition",p:"n",m:"<ruby>伝統<rt>でんとう</rt></ruby>",ex:"Eating osechi at New Year's is a Japanese tradition.",hl:"tradition",ja:"正月におせちを食べるのは日本の伝統です。"},
+  {n:409,s:1,w:"culture",p:"n",m:"<ruby>文化<rt>ぶんか</rt></ruby>",ex:"My sister studies French culture and history at college.",hl:"culture",ja:"わたしの姉は大学でフランスの文化と歴史を勉強しています。"},
+  {n:410,s:1,w:"language",p:"n",m:"<ruby>言語<rt>げんご</rt></ruby>",ex:"Sarah speaks four languages.",hl:"languages",ja:"サラは4か国語を話します。"},
+  {n:411,s:1,w:"storm",p:"n",m:"あらし",ex:"There was a storm last night.",hl:"storm",ja:"昨夜はあらしでした。"},
+  {n:412,s:0,w:"climate",p:"n",m:"<ruby>気候<rt>きこう</rt></ruby>",ex:"What's the climate like in your country?",hl:"climate",ja:"あなたの国の気候はどのような感じですか。"},
+  {n:413,s:0,w:"sunlight",p:"n",m:"<ruby>日光<rt>にっこう</rt></ruby>",ex:"Meg likes to take a walk in the morning sunlight.",hl:"sunlight",ja:"メグは朝日の中を散歩するのが好きです。"},
+  {n:414,s:1,w:"invite",p:"v",m:"～を<ruby>招待<rt>しょうたい</rt></ruby>する",ex:"I invited Anna to my birthday party.",hl:"invited",ja:"わたしはアンナを誕生日パーティーに招待しました。"},
+  {n:415,s:1,w:"fight",p:"v",m:"（～と）<ruby>戦<rt>たたか</rt></ruby>う",past:"fought",ex:"Why did the two countries fight for so long?",hl:"fight",ja:"なぜその2つの国は、そんなに長い間戦ったのですか。"},
+  {n:416,s:1,w:"destroy",p:"v",m:"～を<ruby>破<rt>は</rt></ruby>かいする",ex:"The hurricane destroyed the garden.",hl:"destroyed",ja:"ハリケーンがその庭園を破かいしました。"},
+  {n:417,s:0,w:"apologize",p:"v",m:"<ruby>謝<rt>あやま</rt></ruby>る",ex:"I apologized for my mistake.",hl:"apologized",ja:"わたしは自分のまちがいを謝りました。"},
+  {n:418,s:1,w:"convenient",p:"a",m:"<ruby>便利<rt>べんり</rt></ruby>な",ex:"Online shopping is really convenient.",hl:"convenient",ja:"オンラインショッピングは本当に便利です。"},
+  {n:419,s:1,w:"excellent",p:"a",m:"（<ruby>非常<rt>ひじょう</rt></ruby>に）<ruby>優<rt>すぐ</rt></ruby>れた",ex:"Meg is an excellent student.",hl:"excellent",ja:"メグは優れた生徒です。"},
+  {n:420,s:0,w:"tasty",p:"a",m:"おいしい",ex:"This chicken soup is very tasty.",hl:"tasty",ja:"このチキンスープはとてもおいしいです。"},
+  {n:421,s:1,w:"easily",p:"d",m:"<ruby>簡単<rt>かんたん</rt></ruby>に",ex:"Just turn right. You can find the bank easily.",hl:"easily",ja:"右に曲がるだけです。簡単にその銀行を見つけることができますよ。"},
+  {n:422,s:0,w:"downstairs",p:"d",m:"<ruby>下<rt>した</rt></ruby>の<ruby>階<rt>かい</rt></ruby>へ",ex:"I changed my clothes and went downstairs.",hl:"downstairs",ja:"ぼくは着がえてから下の階へ降りて行きました。"},
+  {n:423,s:1,w:"write down ～",p:"p",m:"～を<ruby>書<rt>か</rt></ruby>きとめる",past:"wrote",ex:"Let me write down your phone number.",hl:"write down",ja:"あなたの電話番号を書きとめさせてください。"},
+  {n:424,s:1,w:"care about ～",p:"p",m:"～を<ruby>気<rt>き</rt></ruby>にする",ex:"He doesn't care about his clothes.",hl:"care about",ja:"かれは服に気をつかいません。"},
+  {n:425,s:0,w:"have a chance to do",p:"p",m:"～する<ruby>機会<rt>きかい</rt></ruby>がある",past:"had",ex:"I had a chance to visit Seattle last year.",hl:"had a chance to visit",ja:"わたしは昨年、シアトルを訪れる機会がありました。"},
+  {n:426,s:1,w:"plenty of ～",p:"p",m:"たくさんの～",ex:"There is plenty of food in the refrigerator.",hl:"plenty of",ja:"冷蔵庫にはたくさんの食べ物があります。"},
+  {n:427,s:1,w:"in spite of ～",p:"p",m:"～にもかかわらず",ex:"We played soccer in spite of the rain.",hl:"in spite of",ja:"雨にもかかわらず、わたしたちはサッカーをしました。"}
+];
+const POS = {n:["名","pos-n"],v:["動","pos-v"],a:["形","pos-a"],d:["副","pos-d"],p:["熟","pos-p"]};
+const SPK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+
+/* ---------- storage (per-device convenience) ---------- */
+const KEY = "unit63-tango-v1";
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+const store = Object.assign({ marks: {}, week: "22", range: "all", count: 10, mode: "read", auto: true }, load());
+const mark = n => store.marks[n] || 0;
+const WEEKS = {
+  "21": { label: "WEEK 21", sub: "388–407", test: w => w.n >= 388 && w.n <= 407 },
+  "22": { label: "WEEK 22", sub: "408–427", test: w => w.n >= 408 && w.n <= 427 },
+  "all": { label: "両方", sub: "388–427", test: () => true }
+};
+const weekWords = () => WORDS.filter(WEEKS[store.week].test);
+const weekLabel = () => WEEKS[store.week].label;
+
+/* ---------- speech ---------- */
+const canSpeak = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+let voice = null;
+function pickVoice() {
+  if (!canSpeak) return;
+  const vs = speechSynthesis.getVoices().filter(v => /^en[-_]/i.test(v.lang));
+  const pref = ["Samantha", "Google US English", "Microsoft Aria", "Microsoft Jenny", "Alex"];
+  voice = vs.find(v => pref.some(p => v.name.includes(p))) || vs.find(v => /en[-_]US/i.test(v.lang)) || vs[0] || null;
+}
+if (canSpeak) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function speakText(text, rate = 0.9) {
+  if (!canSpeak) return;
+  const t = text.replace(/～/g, "").replace(/\s+/g, " ").trim();
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(t);
+  u.lang = voice ? voice.lang : "en-US";
+  if (voice) u.voice = voice;
+  u.rate = rate;
+  speechSynthesis.speak(u);
+}
+
+/* ---------- helpers ---------- */
+const $app = document.getElementById("app");
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const boxes = n => `<span class="boxes" aria-label="${mark(n)}回正解">${[0,1,2].map(i => `<b class="${i < mark(n) ? "on" : ""}"></b>`).join("")}</span>`;
+const posTag = p => `<span class="pos ${POS[p][1]}">${POS[p][0]}</span>`;
+function hlSentence(w) {
+  const e = esc(w.ex), h = esc(w.hl), i = e.indexOf(h);
+  return i < 0 ? e : e.slice(0, i) + "<mark>" + h + "</mark>" + e.slice(i + h.length);
+}
+
+const RANGES = {
+  all:  { label: "ぜんぶ", sub: () => weekWords().length + "語", pick: () => weekWords() },
+  a:    { label: "前半", sub: () => "さいしょの" + Math.ceil(weekWords().length / 2) + "語", pick: () => { const w = weekWords(); return w.slice(0, Math.ceil(w.length / 2)); } },
+  b:    { label: "後半", sub: () => "あとの" + Math.floor(weekWords().length / 2) + "語", pick: () => { const w = weekWords(); return w.slice(Math.ceil(w.length / 2)); } },
+  star: { label: "★だけ", sub: () => weekWords().filter(w => w.s).length + "語", pick: () => weekWords().filter(w => w.s) },
+  weak: { label: "にがて", sub: () => weekWords().filter(w => mark(w.n) < 3).length + "語", pick: () => weekWords().filter(w => mark(w.n) < 3) }
+};
+
+/* ---------- HOME ---------- */
+function home() {
+  const ww = weekWords();
+  const done = ww.filter(w => mark(w.n) >= 3).length;
+  const pct = done / ww.length, C = 2 * Math.PI * 26;
+  const weakCount = RANGES.weak.pick().length;
+  if (store.range === "weak" && !weakCount) store.range = "all";
+  $app.innerHTML = `
+    <div class="top"><h1>たんごクイズ</h1><span class="unit">${weekLabel()}</span></div>
+    <div class="panel">
+      <div class="label">どの ページ？</div>
+      <div class="seg" id="weekSeg">${Object.entries(WEEKS).map(([k, r]) =>
+        `<button type="button" data-k="${k}" aria-pressed="${store.week === k}">${r.label}<small>${r.sub}</small></button>`).join("")}</div>
+      <div class="summary">
+        <svg class="ring" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--line)" stroke-width="8"/>
+          <circle cx="32" cy="32" r="26" fill="none" stroke="var(--good)" stroke-width="8" stroke-linecap="round"
+            stroke-dasharray="${C * pct} ${C}" transform="rotate(-90 32 32)"/></svg>
+        <div><strong>${done}</strong> / ${ww.length} 語 おぼえた<p>3回正解すると □□□ がぜんぶうまります</p></div>
+      </div>
+    </div>
+    ${canSpeak ? "" : `<div class="warn">このブラウザでは発音を再生できません。Safari か Chrome でひらいてください。</div>`}
+    <div class="panel">
+      <div class="label">どの たんご？</div>
+      <div class="seg five" id="rangeSeg">${Object.entries(RANGES).map(([k, r]) =>
+        `<button type="button" data-k="${k}" aria-pressed="${store.range === k}" ${k === "weak" && !weakCount ? "disabled" : ""}>${r.label}<small>${r.sub()}</small></button>`).join("")}</div>
+      <div class="label">なんもん？</div>
+      <div class="seg" id="countSeg">${[5, 10, 20].map(c => `<button type="button" data-c="${c}" aria-pressed="${store.count === c}">${c}もん</button>`).join("")}</div>
+      <div class="label">あそびかた</div>
+      <div class="seg" id="modeSeg">
+        <button type="button" data-m="read" aria-pressed="${store.mode === "read"}">見てこたえる<small>英語を読んで意味をえらぶ</small></button>
+        <button type="button" data-m="listen" aria-pressed="${store.mode === "listen"}">聞いてこたえる<small>発音だけで意味をえらぶ</small></button>
+      </div>
+      <div class="toggle"><span>問題が出たら自動で発音する</span><button type="button" class="switch" id="autoSw" role="switch" aria-checked="${store.auto}" aria-label="自動で発音"></button></div>
+    </div>
+    <button type="button" class="big-btn" id="startBtn">スタート！</button>
+    <button type="button" class="sub-btn" id="listBtn">たんごリストを見る・聞く</button>`;
+  $app.querySelector("#weekSeg").onclick = e => { const b = e.target.closest("button"); if (b) { store.week = b.dataset.k; save(); home(); } };
+  $app.querySelector("#rangeSeg").onclick = e => { const b = e.target.closest("button"); if (b && !b.disabled) { store.range = b.dataset.k; save(); home(); } };
+  $app.querySelector("#countSeg").onclick = e => { const b = e.target.closest("button"); if (b) { store.count = +b.dataset.c; save(); home(); } };
+  $app.querySelector("#modeSeg").onclick = e => { const b = e.target.closest("button"); if (b) { store.mode = b.dataset.m; if (b.dataset.m === "listen") store.auto = true; save(); home(); } };
+  $app.querySelector("#autoSw").onclick = () => { store.auto = !store.auto; save(); home(); };
+  $app.querySelector("#startBtn").onclick = () => startQuiz(RANGES[store.range].pick());
+  $app.querySelector("#listBtn").onclick = list;
+}
+
+/* ---------- QUIZ ---------- */
+let Q = null;
+function startQuiz(pool) {
+  let qs = shuffle(pool);
+  while (qs.length < store.count && pool.length) qs = qs.concat(shuffle(pool));
+  qs = qs.slice(0, Math.min(store.count, Math.max(pool.length, store.count)));
+  if (pool.length < store.count) qs = qs.slice(0, pool.length); // 少ない範囲は重複させない
+  Q = { qs, i: 0, right: 0, missed: [] };
+  ask();
+}
+function makeChoices(w) {
+  const same = shuffle(WORDS.filter(x => x !== w && x.p === w.p));
+  const other = shuffle(WORDS.filter(x => x !== w && x.p !== w.p));
+  return shuffle([w, ...same.concat(other).slice(0, 3)]);
+}
+function ask() {
+  const w = Q.qs[Q.i], listen = store.mode === "listen";
+  const ch = makeChoices(w);
+  $app.innerHTML = `
+    <div class="qbar"><button type="button" class="icon-btn" id="quit">やめる</button>
+      <div class="track"><i style="width:${Q.i / Q.qs.length * 100}%"></i></div><span>${Q.i + 1}/${Q.qs.length}</span></div>
+    <div class="card pop">
+      <div class="num">${w.s ? '<span class="star">★</span>' : ""}${w.n} ${boxes(w.n)}</div>
+      <div class="word ${listen ? "hidden-word" : ""}" id="word" aria-label="${listen ? "かくれた単語" : esc(w.w)}">${esc(w.w)}</div>
+      <div class="speak-row">
+        <button type="button" class="speak" id="sp">${SPK}発音を聞く</button>
+        <button type="button" class="speak slow" id="spSlow">ゆっくり</button>
+      </div>
+    </div>
+    <div class="prompt">${listen ? "聞こえた たんごの 意味は？" : "この たんごの 意味は？"}</div>
+    <div class="choices" id="choices">${ch.map((c, i) =>
+      `<button type="button" class="choice" data-i="${i}"><span class="k">${i + 1}</span>${posTag(c.p)}<span>${c.m}</span></button>`).join("")}</div>
+    <div id="fb"></div>`;
+  $app.querySelector("#sp").onclick = () => speakText(w.w);
+  $app.querySelector("#spSlow").onclick = () => speakText(w.w, 0.55);
+  $app.querySelector("#quit").onclick = home;
+  $app.querySelector("#choices").onclick = e => { const b = e.target.closest(".choice"); if (b && !b.disabled) answer(w, ch, +b.dataset.i); };
+  if (store.auto) setTimeout(() => speakText(w.w), 250);
+  window.scrollTo(0, 0);
+}
+function answer(w, ch, pick) {
+  const ok = ch[pick] === w;
+  const box = $app.querySelector("#choices");
+  box.classList.add("done");
+  box.querySelectorAll(".choice").forEach((b, i) => {
+    b.disabled = true;
+    if (ch[i] === w) b.classList.add("correct");
+    else if (i === pick) b.classList.add("wrong");
+  });
+  if (ok) { Q.right++; store.marks[w.n] = Math.min(3, mark(w.n) + 1); }
+  else { Q.missed.push(w); store.marks[w.n] = Math.max(0, mark(w.n) - 1); }
+  save();
+  const wordEl = $app.querySelector("#word");
+  wordEl.classList.remove("hidden-word"); wordEl.setAttribute("aria-label", w.w);
+  $app.querySelector(".num .boxes").outerHTML = boxes(w.n);
+  const last = Q.i === Q.qs.length - 1;
+  const fb = $app.querySelector("#fb");
+  fb.innerHTML = `
+    <div class="backdrop"></div>
+    <div class="feedback pop" role="dialog" aria-label="こたえ">
+      <div class="verdict ${ok ? "ok" : "ng"}">${ok ? "◎ せいかい！" : "× ざんねん…"}</div>
+      <div class="answer-line"><span class="en">${esc(w.w)}</span> ＝ ${w.m}</div>
+      ${w.past ? `<div class="past">過去形 <span class="en">${w.past}</span></div>` : ""}
+      ${w.pl ? `<div class="past">複数形 <span class="en">${w.pl}</span></div>` : ""}
+      <div class="ex">
+        <div class="ex-head"><span class="label">れいぶん</span><button type="button" class="speak slow" id="spEx">${SPK}文を聞く</button></div>
+        <div class="en">${hlSentence(w)}</div>
+        <div class="ja">${w.ja}</div>
+      </div>
+      <button type="button" class="big-btn" id="next">${last ? "けっかを見る" : "つぎへ"}</button>
+    </div>`;
+  fb.querySelector("#spEx").onclick = () => speakText(w.ex, 0.85);
+  fb.querySelector("#next").onclick = () => { Q.i++; Q.i < Q.qs.length ? ask() : result(); };
+  if (!ok || store.mode === "listen") speakText(w.w);
+  fb.querySelector("#next").focus({ preventScroll: true });
+}
+
+/* ---------- RESULT ---------- */
+function result() {
+  const n = Q.qs.length, r = Q.right, rate = r / n;
+  const msg = rate === 1 ? "パーフェクト！すごい！" : rate >= .8 ? "よくできました！" : rate >= .5 ? "あと少し！がんばろう" : "もう一回やってみよう！";
+  const missed = [...new Set(Q.missed)];
+  $app.innerHTML = `
+    <div class="top"><h1>けっか</h1><span class="unit">${weekLabel()}</span></div>
+    <div class="panel score pop"><div class="big">${r}<span> / ${n}</span></div><div class="msg">${msg}</div></div>
+    ${missed.length ? `<div class="label">まちがえた たんご</div><div class="list">${missed.map(rowHTML).join("")}</div>` : ""}
+    <div class="btns">
+      ${missed.length ? `<button type="button" class="big-btn" id="retry">まちがえた問題だけ もう一回</button>` : ""}
+      <button type="button" class="${missed.length ? "sub-btn" : "big-btn"}" id="again">同じ範囲で もう一回</button>
+      <button type="button" class="sub-btn" id="toHome">はじめにもどる</button>
+    </div>`;
+  bindRows();
+  if (missed.length) $app.querySelector("#retry").onclick = () => { const c = store.count; store.count = missed.length; startQuiz(missed); store.count = c; };
+  $app.querySelector("#again").onclick = () => startQuiz(RANGES[store.range].pick());
+  $app.querySelector("#toHome").onclick = home;
+  window.scrollTo(0, 0);
+}
+
+/* ---------- LIST ---------- */
+function rowHTML(w) {
+  return `<div class="row">
+    <div class="c1"><div class="num">${w.s ? '<span class="star">★</span>' : ""}${w.n} ${boxes(w.n)}</div><div class="w">${esc(w.w)}</div></div>
+    <div class="c2">${posTag(w.p)}<span>${w.m}</span></div>
+    <div class="c3"><button type="button" class="mini" data-n="${w.n}" aria-label="${esc(w.w)} の発音">${SPK}</button></div>
+  </div>`;
+}
+function bindRows() {
+  $app.querySelectorAll(".mini").forEach(b => b.onclick = () => speakText(WORDS.find(w => w.n === +b.dataset.n).w));
+}
+function list() {
+  $app.innerHTML = `
+    <div class="top"><button type="button" class="icon-btn" id="back">← もどる</button><span class="unit">${weekLabel()}</span></div>
+    <p class="note">スピーカーをタップすると発音が聞けます</p>
+    <div class="list">${weekWords().map(rowHTML).join("")}</div>
+    <button type="button" class="sub-btn" id="reset">□ のきろくを リセット</button>
+    <p class="note" id="resetNote" hidden>もう一度おすとリセットします</p>`;
+  bindRows();
+  $app.querySelector("#back").onclick = home;
+  let armed = false;
+  $app.querySelector("#reset").onclick = () => {
+    if (!armed) { armed = true; $app.querySelector("#resetNote").hidden = false; return; }
+    store.marks = {}; save(); list();
+  };
+  window.scrollTo(0, 0);
+}
+
+home();
+</script>
+<script>
+if ("serviceWorker" in navigator && location.protocol === "https:") { window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {})); }
+</script>
+</body>
+</html>
