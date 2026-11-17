@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#c43a52">
-<title>たんごクイズ WEEK 21-22</title>
+<title>たんごクイズ</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" href="icon-192.png">
@@ -71,6 +71,8 @@ rt { font-size: .5em; color: var(--muted); }
 .panel { background: var(--paper); border: 2px solid var(--line); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 .label { font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: .05em; }
 .seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
+.seg.four { grid-template-columns: repeat(4, 1fr); }
+.seg.four button { padding-inline: 2px; font-size: 15px; }
 .seg.five { grid-template-columns: repeat(6, 1fr); }
 .seg.five button { grid-column: span 2; }
 .seg.five button:nth-child(4) { grid-column: 2 / span 2; }
@@ -140,7 +142,7 @@ rt { font-size: .5em; color: var(--muted); }
 .choice:disabled { cursor: default; }
 .choices.done .choice:not(.correct):not(.wrong) { opacity: .45; }
 
-.pos-n { background: #d9466a; } .pos-v { background: #2f53b0; } .pos-a { background: #2f8f4e; } .pos-d { background: #d2691e; } .pos-p { background: #7b5bb5; }
+.pos-n { background: #d9466a; } .pos-v { background: #2f53b0; } .pos-a { background: #2f8f4e; } .pos-d { background: #d2691e; } .pos-r { background: #1f8a9e; } .pos-p { background: #7b5bb5; }
 
 /* answer sheet: slides up from the bottom so nothing has to be scrolled on a phone */
 .backdrop { position: fixed; inset: 0; background: color-mix(in srgb, var(--ink) 35%, transparent); z-index: 20; }
@@ -240,9 +242,24 @@ const WORDS = [
   {n:424,s:1,w:"care about ～",p:"p",m:"～を<ruby>気<rt>き</rt></ruby>にする",ex:"He doesn't care about his clothes.",hl:"care about",ja:"かれは服に気をつかいません。"},
   {n:425,s:0,w:"have a chance to do",p:"p",m:"～する<ruby>機会<rt>きかい</rt></ruby>がある",past:"had",ex:"I had a chance to visit Seattle last year.",hl:"had a chance to visit",ja:"わたしは昨年、シアトルを訪れる機会がありました。"},
   {n:426,s:1,w:"plenty of ～",p:"p",m:"たくさんの～",ex:"There is plenty of food in the refrigerator.",hl:"plenty of",ja:"冷蔵庫にはたくさんの食べ物があります。"},
-  {n:427,s:1,w:"in spite of ～",p:"p",m:"～にもかかわらず",ex:"We played soccer in spite of the rain.",hl:"in spite of",ja:"雨にもかかわらず、わたしたちはサッカーをしました。"}
+  {n:427,s:1,w:"in spite of ～",p:"p",m:"～にもかかわらず",ex:"We played soccer in spite of the rain.",hl:"in spite of",ja:"雨にもかかわらず、わたしたちはサッカーをしました。"},
+  {n:428,s:0,w:"crater",p:"n",m:"（<ruby>月面<rt>げつめん</rt></ruby>などの）クレーター",ex:"You can see craters on the moon with this telescope.",hl:"craters",ja:"この望遠鏡を使って、月のクレーターを見ることができます。"},
+  {n:429,s:0,w:"gravity",p:"n",m:"<ruby>重力<rt>じゅうりょく</rt></ruby>",ex:"Is there gravity in space?",hl:"gravity",ja:"宇宙空間に重力はありますか。"},
+  {n:430,s:0,w:"pull",p:"n",m:"<ruby>引<rt>ひ</rt></ruby>く<ruby>力<rt>ちから</rt></ruby>、<ruby>引力<rt>いんりょく</rt></ruby>",ex:"Give the door a hard pull.",hl:"pull",ja:"そのドアを強く引きなさい。"},
+  {n:431,s:0,w:"tide",p:"n",m:"<ruby>潮<rt>しお</rt></ruby>（の<ruby>満<rt>み</rt></ruby>ち<ruby>引<rt>ひ</rt></ruby>き）",ex:"When does the tide go out?",hl:"tide",ja:"いつ潮が引きますか。"},
+  {n:432,s:0,w:"sea level",p:"n",m:"<ruby>海面<rt>かいめん</rt></ruby>",ex:"The sea level will go up over the next twenty years.",hl:"sea level",ja:"今後20年で海面が上昇するでしょう。"},
+  {n:433,s:0,w:"degree",p:"n",m:"（<ruby>温度<rt>おんど</rt></ruby>・<ruby>角度<rt>かくど</rt></ruby>などの）<ruby>度<rt>ど</rt></ruby>",ex:"Today's temperature will reach 36 degrees Celsius.",hl:"degrees",ja:"今日の気温はセ氏36度まで達するでしょう。"},
+  {n:434,s:0,w:"one-fourth",p:"n",m:"4<ruby>分<rt>ぶん</rt></ruby>の1",ex:"Leave one-fourth of the pie for me.",hl:"one-fourth",ja:"わたしのために、パイの4分の1を残しておいてね。"},
+  {n:435,s:0,w:"image",p:"n",m:"（<ruby>画<rt>が</rt></ruby>）<ruby>像<rt>ぞう</rt></ruby>",ex:"I downloaded some images from the Internet.",hl:"images",ja:"わたしはインターネットの画像をダウンロードしました。"},
+  {n:436,s:0,w:"bullet train",p:"n",m:"<ruby>新幹線<rt>しんかんせん</rt></ruby>",ex:"This bullet train runs between Tokyo and Fukuoka.",hl:"bullet train",ja:"この新幹線は東京と福岡の間を走っています。"},
+  {n:437,s:0,w:"cause",p:"v",m:"～を<ruby>引<rt>ひ</rt></ruby>き<ruby>起<rt>お</rt></ruby>こす、～の<ruby>原因<rt>げんいん</rt></ruby>となる",ex:"Bad weather caused the accident.",hl:"caused",ja:"悪天候がその事故を引き起こしました。"},
+  {n:438,s:0,w:"pound",p:"v",m:"（～を）<ruby>何度<rt>なんど</rt></ruby>も<ruby>強<rt>つよ</rt></ruby>く<ruby>打<rt>う</rt></ruby>つ",ex:"He pounded on the door.",hl:"pounded",ja:"かれはドアを強くたたきました。"},
+  {n:439,s:0,w:"shine",p:"v",m:"かがやく、<ruby>光<rt>ひか</rt></ruby>る",past:"shined / shone",ex:"The lake is shining in the sunlight.",hl:"shining",ja:"その湖は太陽の光を浴びてかがやいています。"},
+  {n:440,s:0,w:"southern",p:"a",m:"<ruby>南<rt>みなみ</rt></ruby>の",ex:"The hotel is in the southern part of the city.",hl:"southern",ja:"そのホテルは街の南部にあります。"},
+  {n:441,s:0,w:"throughout",p:"r",m:"～の<ruby>間<rt>あいだ</rt></ruby>じゅう",ex:"I read my book throughout the day.",hl:"throughout",ja:"わたしは一日中、本を読みました。"},
+  {n:442,s:0,w:"take ～ to do",p:"p",m:"…するのに（<ruby>時間<rt>じかん</rt></ruby>）がかかる",past:"took",ex:"This plant takes a long time to grow.",hl:"takes a long time to grow",ja:"この植物は育てるのに長い時間がかかります。"}
 ];
-const POS = {n:["名","pos-n"],v:["動","pos-v"],a:["形","pos-a"],d:["副","pos-d"],p:["熟","pos-p"]};
+const POS = {n:["名","pos-n"],v:["動","pos-v"],a:["形","pos-a"],d:["副","pos-d"],r:["前","pos-r"],p:["熟","pos-p"]};
 const SPK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
 
 /* ---------- storage (per-device convenience) ---------- */
@@ -254,7 +271,8 @@ const mark = n => store.marks[n] || 0;
 const WEEKS = {
   "21": { label: "WEEK 21", sub: "388–407", test: w => w.n >= 388 && w.n <= 407 },
   "22": { label: "WEEK 22", sub: "408–427", test: w => w.n >= 408 && w.n <= 427 },
-  "all": { label: "両方", sub: "388–427", test: () => true }
+  "23": { label: "WEEK 23", sub: "428–442", test: w => w.n >= 428 && w.n <= 442 },
+  "all": { label: "ぜんぶ", sub: "388–442", test: () => true }
 };
 const weekWords = () => WORDS.filter(WEEKS[store.week].test);
 const weekLabel = () => WEEKS[store.week].label;
@@ -306,11 +324,12 @@ function home() {
   const pct = done / ww.length, C = 2 * Math.PI * 26;
   const weakCount = RANGES.weak.pick().length;
   if (store.range === "weak" && !weakCount) store.range = "all";
+  if (store.range === "star" && !RANGES.star.pick().length) store.range = "all";
   $app.innerHTML = `
     <div class="top"><h1>たんごクイズ</h1><span class="unit">${weekLabel()}</span></div>
     <div class="panel">
       <div class="label">どの ページ？</div>
-      <div class="seg" id="weekSeg">${Object.entries(WEEKS).map(([k, r]) =>
+      <div class="seg four" id="weekSeg">${Object.entries(WEEKS).map(([k, r]) =>
         `<button type="button" data-k="${k}" aria-pressed="${store.week === k}">${r.label}<small>${r.sub}</small></button>`).join("")}</div>
       <div class="summary">
         <svg class="ring" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--line)" stroke-width="8"/>
@@ -323,7 +342,7 @@ function home() {
     <div class="panel">
       <div class="label">どの たんご？</div>
       <div class="seg five" id="rangeSeg">${Object.entries(RANGES).map(([k, r]) =>
-        `<button type="button" data-k="${k}" aria-pressed="${store.range === k}" ${k === "weak" && !weakCount ? "disabled" : ""}>${r.label}<small>${r.sub()}</small></button>`).join("")}</div>
+        `<button type="button" data-k="${k}" aria-pressed="${store.range === k}" ${(k === "weak" && !weakCount) || (k === "star" && !RANGES.star.pick().length) ? "disabled" : ""}>${r.label}<small>${r.sub()}</small></button>`).join("")}</div>
       <div class="label">なんもん？</div>
       <div class="seg" id="countSeg">${[5, 10, 20].map(c => `<button type="button" data-c="${c}" aria-pressed="${store.count === c}">${c}もん</button>`).join("")}</div>
       <div class="label">あそびかた</div>
