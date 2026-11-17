@@ -202,6 +202,7 @@ rt { font-size: .5em; color: var(--muted); }
 <div class="app" id="app"></div>
 
 <script>
+const APP_VERSION = "2026-11-17b";
 const WORDS = [
   {n:388,s:1,w:"life",p:"n",m:"<ruby>生命<rt>せいめい</rt></ruby>、<ruby>命<rt>いのち</rt></ruby>",pl:"lives",ex:"The doctor saved many lives.",hl:"lives",ja:"その医者はたくさんの命を救いました。"},
   {n:389,s:1,w:"death",p:"n",m:"<ruby>死<rt>し</rt></ruby>",ex:"The novelist became famous after his death.",hl:"death",ja:"その小説家は死後、有名になりました。"},
@@ -353,7 +354,8 @@ function home() {
       <div class="toggle"><span>問題が出たら自動で発音する</span><button type="button" class="switch" id="autoSw" role="switch" aria-checked="${store.auto}" aria-label="自動で発音"></button></div>
     </div>
     <button type="button" class="big-btn" id="startBtn">スタート！</button>
-    <button type="button" class="sub-btn" id="listBtn">たんごリストを見る・聞く</button>`;
+    <button type="button" class="sub-btn" id="listBtn">たんごリストを見る・聞く</button>
+    <p class="note">版 ${APP_VERSION} ・ ${WORDS.length}語</p>`;
   $app.querySelector("#weekSeg").onclick = e => { const b = e.target.closest("button"); if (b) { store.week = b.dataset.k; save(); home(); } };
   $app.querySelector("#rangeSeg").onclick = e => { const b = e.target.closest("button"); if (b && !b.disabled) { store.range = b.dataset.k; save(); home(); } };
   $app.querySelector("#countSeg").onclick = e => { const b = e.target.closest("button"); if (b) { store.count = +b.dataset.c; save(); home(); } };
@@ -492,7 +494,11 @@ function list() {
 home();
 </script>
 <script>
-if ("serviceWorker" in navigator && location.protocol === "https:") { window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {})); }
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").then(reg => reg.update()).catch(() => {}));
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => { if (navigator.serviceWorker.controller && !reloaded) { reloaded = true; location.reload(); } });
+}
 </script>
 </body>
 </html>
