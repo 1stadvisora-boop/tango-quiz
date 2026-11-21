@@ -17,16 +17,18 @@ public class MainActivity extends Activity {
     private WebView web;
     private TextToSpeech tts;
     private boolean ttsReady = false;
+    private String ttsStatus = "初期化中";
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         tts = new TextToSpeech(this, status -> {
-            if (status == TextToSpeech.SUCCESS) {
-                int r = tts.setLanguage(Locale.US);
-                ttsReady = r != TextToSpeech.LANG_MISSING_DATA && r != TextToSpeech.LANG_NOT_SUPPORTED;
-            }
+            if (status != TextToSpeech.SUCCESS) { ttsStatus = "読み上げエンジンを起動できません"; return; }
+            int r = tts.setLanguage(Locale.US);
+            if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) r = tts.setLanguage(Locale.ENGLISH);
+            if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) { ttsStatus = "英語の音声データがありません"; return; }
+            ttsReady = true; ttsStatus = "OK";
         });
         web = new WebView(this);
         WebSettings s = web.getSettings();
@@ -52,10 +54,12 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public boolean available() { return ttsReady; }
         @JavascriptInterface
-        public void speak(String text, float rate) {
-            if (!ttsReady) return;
+        public String status() { return ttsStatus; }
+        @JavascriptInterface
+        public boolean speak(String text, float rate) {
+            if (!ttsReady) return false;
             tts.setSpeechRate(rate);
-            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tango");
+            return tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tango") == TextToSpeech.SUCCESS;
         }
     }
 

@@ -191,6 +191,8 @@ rt { font-size: .5em; color: var(--muted); }
 .btns { display: flex; flex-direction: column; gap: 10px; }
 .note { font-size: 12px; color: var(--muted); text-align: center; margin: 0; }
 .warn { background: var(--bad-bg); color: var(--bad); border-radius: 12px; padding: 10px 12px; font-size: 13px; font-weight: 700; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 50;
+  max-width: min(92vw, 480px); background: var(--ink); color: var(--bg); padding: 12px 16px; border-radius: 14px; font-size: 14px; font-weight: 700; line-height: 1.5; box-shadow: 0 6px 24px color-mix(in srgb, var(--ink) 35%, transparent); }
 
 @keyframes pop { 0% { transform: scale(.96); } 60% { transform: scale(1.03); } 100% { transform: scale(1); } }
 .pop { animation: pop .25s ease-out; }
@@ -202,7 +204,7 @@ rt { font-size: .5em; color: var(--muted); }
 <div class="app" id="app"></div>
 
 <script>
-const APP_VERSION = "2026-11-17b";
+const APP_VERSION = "2026-11-20";
 const WORDS = [
   {n:388,s:1,w:"life",p:"n",m:"<ruby>生命<rt>せいめい</rt></ruby>、<ruby>命<rt>いのち</rt></ruby>",pl:"lives",ex:"The doctor saved many lives.",hl:"lives",ja:"その医者はたくさんの命を救いました。"},
   {n:389,s:1,w:"death",p:"n",m:"<ruby>死<rt>し</rt></ruby>",ex:"The novelist became famous after his death.",hl:"death",ja:"その小説家は死後、有名になりました。"},
@@ -279,26 +281,49 @@ const weekWords = () => WORDS.filter(WEEKS[store.week].test);
 const weekLabel = () => WEEKS[store.week].label;
 
 /* ---------- speech ---------- */
-const nativeTTS = typeof window.AndroidTTS !== "undefined" && window.AndroidTTS; // Androidアプリ版の読み上げ
-const canSpeak = !!nativeTTS || ("speechSynthesis" in window && "SpeechSynthesisUtterance" in window);
-let voice = null;
+// Androidアプリ版では端末の読み上げ(AndroidTTS)、ブラウザ版では Web Speech API を使う
+const nativeTTS = (typeof window.AndroidTTS !== "undefined" && window.AndroidTTS) || null;
+const webTTS = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+const canSpeak = !!nativeTTS || webTTS;
+let voice = null, lastUtter = null;
 function pickVoice() {
-  if (!canSpeak) return;
+  if (!webTTS) return;
   const vs = speechSynthesis.getVoices().filter(v => /^en[-_]/i.test(v.lang));
   const pref = ["Samantha", "Google US English", "Microsoft Aria", "Microsoft Jenny", "Alex"];
   voice = vs.find(v => pref.some(p => v.name.includes(p))) || vs.find(v => /en[-_]US/i.test(v.lang)) || vs[0] || null;
 }
-if (canSpeak && !nativeTTS) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+if (webTTS) { pickVoice(); speechSynthesis.addEventListener("voiceschanged", pickVoice); }
+function toast(msg) {
+  let el = document.getElementById("toast");
+  if (!el) { el = document.createElement("div"); el.id = "toast"; el.className = "toast"; document.body.appendChild(el); }
+  el.textContent = msg; el.hidden = false;
+  clearTimeout(toast.t); toast.t = setTimeout(() => { el.hidden = true; }, 4000);
+}
+function speakWeb(t, rate) {
+  try {
+    if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = "en-US"; if (voice) u.voice = voice;
+    u.rate = rate; u.volume = 1; u.pitch = 1;
+    u.onerror = ev => { if (ev.error !== "interrupted" && ev.error !== "canceled") toast("音声を再生できませんでした(" + ev.error + ")。音量と、端末の「テキスト読み上げ」設定を確認してください"); };
+    lastUtter = u; // 読み上げ途中で破棄されないよう参照を保持
+    // cancel 直後の speak は Android で無音になることがあるため、少し待ってから再生
+    setTimeout(() => { try { speechSynthesis.resume(); speechSynthesis.speak(u); } catch (e) { toast("音声を再生できませんでした"); } }, 60);
+  } catch (e) { toast("音声を再生できませんでした"); }
+}
 function speakText(text, rate = 0.9) {
-  if (!canSpeak) return;
   const t = text.replace(/～/g, "").replace(/\s+/g, " ").trim();
-  if (nativeTTS) { try { nativeTTS.speak(t, rate); } catch (e) {} return; }
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(t);
-  u.lang = voice ? voice.lang : "en-US";
-  if (voice) u.voice = voice;
-  u.rate = rate;
-  speechSynthesis.speak(u);
+  if (nativeTTS) {
+    let ok = false;
+    try { ok = nativeTTS.speak(t, rate); } catch (e) { ok = false; }
+    if (ok) return;
+    let why = ""; try { why = nativeTTS.status(); } catch (e) {}
+    if (webTTS) { speakWeb(t, rate); return; }
+    toast("端末の読み上げ機能を使えません" + (why ? "(" + why + ")" : "") + "。設定→「テキスト読み上げ」で英語の音声データを確認してください");
+    return;
+  }
+  if (!webTTS) { toast("このブラウザは音声読み上げに対応していません。Chrome で開いてください"); return; }
+  speakWeb(t, rate);
 }
 
 /* ---------- helpers ---------- */
@@ -357,7 +382,8 @@ function home() {
     </div>
     <button type="button" class="big-btn" id="startBtn">スタート！</button>
     <button type="button" class="sub-btn" id="listBtn">たんごリストを見る・聞く</button>
-    <p class="note">版 ${APP_VERSION} ・ ${WORDS.length}語</p>`;
+    <button type="button" class="sub-btn" id="testBtn">${SPK} 音のテスト(Hello!)</button>
+    <p class="note">版 ${APP_VERSION} ・ ${WORDS.length}語 ・ 音声: ${nativeTTS ? "アプリ内蔵" : webTTS ? "ブラウザ" : "なし"}</p>`;
   $app.querySelector("#weekSeg").onclick = e => { const b = e.target.closest("button"); if (b) { store.week = b.dataset.k; save(); home(); } };
   $app.querySelector("#rangeSeg").onclick = e => { const b = e.target.closest("button"); if (b && !b.disabled) { store.range = b.dataset.k; save(); home(); } };
   $app.querySelector("#countSeg").onclick = e => { const b = e.target.closest("button"); if (b) { store.count = +b.dataset.c; save(); home(); } };
@@ -365,6 +391,7 @@ function home() {
   $app.querySelector("#autoSw").onclick = () => { store.auto = !store.auto; save(); home(); };
   $app.querySelector("#startBtn").onclick = () => startQuiz(RANGES[store.range].pick());
   $app.querySelector("#listBtn").onclick = list;
+  $app.querySelector("#testBtn").onclick = () => { speakText("Hello! Let's study English words.", 0.9); toast("再生中… 聞こえなければ、音量(メディア)とマナーモードを確認してください"); };
 }
 
 /* ---------- QUIZ ---------- */
