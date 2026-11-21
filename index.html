@@ -94,7 +94,8 @@ rt { font-size: .5em; color: var(--muted); }
   background: var(--pink-ink); color: var(--paper); box-shadow: 0 4px 0 color-mix(in srgb, var(--pink-ink) 60%, #000);
 }
 .big-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 color-mix(in srgb, var(--pink-ink) 60%, #000); }
-.sub-btn { border: 2px solid var(--line); background: var(--paper); border-radius: 16px; padding: 12px; font-size: 16px; font-weight: 700; }
+.sub-btn { border: 2px solid var(--line); background: var(--paper); border-radius: 16px; padding: 12px; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.sub-btn svg { width: 22px; height: 22px; flex: none; }
 
 /* progress summary */
 .summary { display: flex; align-items: center; gap: 14px; }
@@ -204,7 +205,7 @@ rt { font-size: .5em; color: var(--muted); }
 <div class="app" id="app"></div>
 
 <script>
-const APP_VERSION = "2026-11-20";
+const APP_VERSION = "2026-11-21";
 const WORDS = [
   {n:388,s:1,w:"life",p:"n",m:"<ruby>生命<rt>せいめい</rt></ruby>、<ruby>命<rt>いのち</rt></ruby>",pl:"lives",ex:"The doctor saved many lives.",hl:"lives",ja:"その医者はたくさんの命を救いました。"},
   {n:389,s:1,w:"death",p:"n",m:"<ruby>死<rt>し</rt></ruby>",ex:"The novelist became famous after his death.",hl:"death",ja:"その小説家は死後、有名になりました。"},
